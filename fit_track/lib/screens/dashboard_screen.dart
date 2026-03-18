@@ -1,3 +1,4 @@
+// ignore_for_file: sized_box_for_whitespace, use_key_in_widget_constructors, deprecated_member_use
 import 'package:flutter/material.dart';
 
 void main() {

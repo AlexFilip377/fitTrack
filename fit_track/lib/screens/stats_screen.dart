@@ -143,7 +143,7 @@ class _StatsScreenState extends State<StatsScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(date, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 16)),
-          Text('Show more', style: TextStyle(color: textColor.withOpacity(0.5), fontSize: 10)),
+          Text('Show more', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 10)),
         ],
       ),
     );

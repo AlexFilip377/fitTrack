@@ -58,7 +58,7 @@ class MetricsScreen extends StatelessWidget {
                         _buildControlBtn(Icons.pause, isOutlined: true),
                         
                         // Старт/Продолжить
-                        _buildControlBtn(Icons.play_arrow, size: 85, color: const Color(0xFF7EB8B8).withOpacity(0.7)),
+                        _buildControlBtn(Icons.play_arrow, size: 85, color: const Color(0xFF7EB8B8).withValues(alpha: 0.7)),
                         
                         // СТОП (КВАДРАТ) - Ведет на статистику
                         GestureDetector(

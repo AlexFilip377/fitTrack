@@ -120,7 +120,7 @@ class _RootScreenState extends State<RootScreen> {
         onTap: onTap,
         child: Container(
           height: 60,
-          color: isActive ? const Color(0xFF7EB8B8) : const Color(0xFFC1DDDD).withOpacity(0.5),
+          color: isActive ? const Color(0xFF7EB8B8) : const Color(0xFFC1DDDD).withValues(alpha: 0.5),
           child: Center(child: Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
         ),
       ),
