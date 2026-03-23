@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fit_track/screens/root_screen.dart';
 import 'package:fit_track/widgets/app_bottom_nav.dart';
+import 'package:fit_track/services/auth_service.dart';
 
 class FitnessHomeScreen extends StatelessWidget {
   const FitnessHomeScreen({super.key});
@@ -9,6 +10,32 @@ class FitnessHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      drawer: Drawer(
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Меню',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('Выйти'),
+                onTap: () async {
+                  Navigator.of(context).pop(); // закрыть drawer
+                  await AuthService.instance.signOut();
+                  if (!context.mounted) return;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -17,7 +44,14 @@ class FitnessHomeScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(Icons.menu, color: Color(0xFF7EB8B8), size: 30),
+                  Builder(
+                    builder: (context) {
+                      return IconButton(
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                        icon: const Icon(Icons.menu, color: Color(0xFF7EB8B8), size: 30),
+                      );
+                    },
+                  ),
                   Row(
                     children: const [
                       Text('Help', style: TextStyle(fontWeight: FontWeight.bold)),

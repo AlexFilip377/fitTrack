@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fit_track/services/auth_service.dart';
-import 'package:fit_track/screens/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,9 +16,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _password2Ctrl = TextEditingController();
   final _auth = AuthService.instance;
 
-  bool _obscure1 = true;
-  bool _obscure2 = true;
   bool _loading = false;
+  String? _errorText;
 
   @override
   void dispose() {
@@ -29,20 +28,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _submit() async {
+    setState(() => _errorText = null);
     if (!(_formKey.currentState?.validate() ?? false)) return;
+
     setState(() => _loading = true);
     try {
       await _auth.registerWithEmail(
         email: _emailCtrl.text,
         password: _passwordCtrl.text,
       );
+    } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const FitnessHomeScreen()),
-        (route) => false,
-      );
+      setState(() => _errorText = _mapAuthError(e));
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _errorText = 'Ошибка регистрации: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  String _mapAuthError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'email-already-in-use':
+        return 'Эта почта уже зарегистрирована';
+      case 'weak-password':
+        return 'Слишком слабый пароль';
+      case 'invalid-email':
+        return 'Некорректная почта';
+      default:
+        return e.message ?? 'Ошибка регистрации';
     }
   }
 
@@ -84,6 +99,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 16),
+                        Text(
+                          'Регистрация через email и пароль в Firebase Auth.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
+                        const SizedBox(height: 16),
                         TextFormField(
                           controller: _emailCtrl,
                           keyboardType: TextInputType.emailAddress,
@@ -103,16 +124,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 12),
                         TextFormField(
                           controller: _passwordCtrl,
-                          obscureText: _obscure1,
+                          obscureText: true,
                           textInputAction: TextInputAction.next,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Пароль',
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            border: const OutlineInputBorder(),
-                            suffixIcon: IconButton(
-                              onPressed: () => setState(() => _obscure1 = !_obscure1),
-                              icon: Icon(_obscure1 ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                            ),
+                            prefixIcon: Icon(Icons.lock_outline),
+                            border: OutlineInputBorder(),
                           ),
                           validator: (v) {
                             final value = v ?? '';
@@ -124,17 +141,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 12),
                         TextFormField(
                           controller: _password2Ctrl,
-                          obscureText: _obscure2,
+                          obscureText: true,
                           textInputAction: TextInputAction.done,
                           onFieldSubmitted: (_) => _loading ? null : _submit(),
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Повторите пароль',
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            border: const OutlineInputBorder(),
-                            suffixIcon: IconButton(
-                              onPressed: () => setState(() => _obscure2 = !_obscure2),
-                              icon: Icon(_obscure2 ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                            ),
+                            prefixIcon: Icon(Icons.lock_outline),
+                            border: OutlineInputBorder(),
                           ),
                           validator: (v) {
                             final value = v ?? '';
@@ -143,6 +156,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             return null;
                           },
                         ),
+                        if (_errorText != null) ...[
+                          const SizedBox(height: 12),
+                          Text(_errorText!, style: const TextStyle(color: Colors.red)),
+                        ],
                         const SizedBox(height: 16),
                         SizedBox(
                           height: 52,
@@ -155,19 +172,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ? const SizedBox(
                                     width: 22,
                                     height: 22,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
                                   )
                                 : const Text(
                                     'Зарегистрироваться',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Это временная заглушка: логин/пароль сохраняются локально.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey.shade700),
                         ),
                       ],
                     ),

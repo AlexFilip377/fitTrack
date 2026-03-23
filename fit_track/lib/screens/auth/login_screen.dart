@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fit_track/services/auth_service.dart';
 import 'package:fit_track/screens/auth/register_screen.dart';
-import 'package:fit_track/screens/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,7 +16,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordCtrl = TextEditingController();
   final _auth = AuthService.instance;
 
-  bool _obscure = true;
   bool _loading = false;
   String? _errorText;
 
@@ -37,21 +36,32 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailCtrl.text,
         password: _passwordCtrl.text,
       );
+    } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const FitnessHomeScreen()),
-        (route) => false,
-      );
+      setState(() => _errorText = _mapAuthError(e));
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _errorText = 'Ошибка входа: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
+  String _mapAuthError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'user-not-found':
+        return 'Пользователь не найден';
+      case 'wrong-password':
+        return 'Неверный пароль';
+      case 'invalid-email':
+        return 'Некорректная почта';
+      default:
+        return e.message ?? 'Ошибка входа';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -76,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: const Color(0xFFF6FAFA),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: cs.primary.withValues(alpha: 0.25)),
+                      side: BorderSide(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25)),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -103,17 +113,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 12),
                             TextFormField(
                               controller: _passwordCtrl,
-                              obscureText: _obscure,
+                              obscureText: true,
                               textInputAction: TextInputAction.done,
                               onFieldSubmitted: (_) => _loading ? null : _submit(),
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'Пароль',
-                                prefixIcon: const Icon(Icons.lock_outline),
-                                border: const OutlineInputBorder(),
-                                suffixIcon: IconButton(
-                                  onPressed: () => setState(() => _obscure = !_obscure),
-                                  icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                                ),
+                                prefixIcon: Icon(Icons.lock_outline),
+                                border: OutlineInputBorder(),
                               ),
                               validator: (v) {
                                 final value = v ?? '';
@@ -139,57 +145,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ? const SizedBox(
                                         width: 22,
                                         height: 22,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
                                       )
-                                    : const Text('Войти', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                                    : const Text(
+                                        'Войти',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
                               ),
                             ),
-                            const SizedBox(height: 10),
                           ],
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  SizedBox(
-                    height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: _loading
-                          ? null
-                          : () async {
-                              setState(() {
-                                _errorText = null;
-                                _loading = true;
-                              });
-                              try {
-                                final user = await _auth.signInWithGoogle();
-                                if (!mounted) return;
-                                if (user == null) {
-                                  setState(() => _errorText = 'Вход через Google отменён');
-                                  return;
-                                }
-                                Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(builder: (_) => const FitnessHomeScreen()),
-                                  (route) => false,
-                                );
-                              } catch (e) {
-                                if (!mounted) return;
-                                setState(() => _errorText = 'Ошибка входа через Google: $e');
-                              } finally {
-                                if (mounted) {
-                                  setState(() => _loading = false);
-                                }
-                              }
-                            },
-                      icon: Image.asset(
-                        'assets/google_logo.png',
-                        height: 20,
-                        width: 20,
-                      ),
-                      label: const Text('Войти через Google'),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
