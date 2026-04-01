@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:fit_track/widgets/app_bottom_nav.dart';
 import 'package:fit_track/screens/stats_screen.dart';
 import 'package:fit_track/screens/root_screen.dart';
+import 'package:fit_track/screens/workouts_list_screen.dart';
+import 'package:fit_track/services/workout_firestore_service.dart';
 
 class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({super.key});
@@ -122,6 +124,32 @@ class CheckoutScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(builder: (context) => const StatsScreen()),
                         );
+                      },
+                    ),
+                    _buildActionButton(
+                      'Мои тренировки (Firestore)',
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const WorkoutsListScreen()),
+                        );
+                      },
+                    ),
+                    _buildActionButton(
+                      'Добавить 3 демо-тренировки',
+                      () async {
+                        try {
+                          await WorkoutFirestoreService.instance.addSampleWorkouts();
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('3 тренировки записаны в Firestore')),
+                          );
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Ошибка: $e')),
+                          );
+                        }
                       },
                     ),
                     _buildActionButton('Похожие маршруты', () {}),

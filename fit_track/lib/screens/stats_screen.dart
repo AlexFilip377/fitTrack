@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fit_track/widgets/app_bottom_nav.dart';
+import 'package:fit_track/services/workout_firestore_service.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -72,10 +75,15 @@ class _StatsScreenState extends State<StatsScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  // Список тренировок
-                  _buildHistoryItem('12 февраля 7:30 AM', const Color(0xFFCDE2E2)),
-                  _buildHistoryItem('14 февраля 11:15 AM', const Color(0xFFE5F0F0)),
-                  _buildHistoryItem('16 февраля 8:23 PM', const Color(0xFF7EB8B8), textColor: Colors.white),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'История (Firestore)',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _FirestoreWorkoutsHistory(),
                 ],
               ),
             ),
@@ -134,21 +142,6 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildHistoryItem(String date, Color bgColor, {Color textColor = Colors.black}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(5)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(date, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 16)),
-          Text('Show more', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 10)),
-        ],
-      ),
-    );
-  }
-
   Widget _buildQualityCard() {
     return Container(
       width: 120,
@@ -165,6 +158,112 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
+}
+
+/// Неделя 10: история тренировок из Firestore (обновляется в реальном времени).
+class _FirestoreWorkoutsHistory extends StatelessWidget {
+  const _FirestoreWorkoutsHistory();
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (uid == null) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Text('Войдите в аккаунт, чтобы видеть историю из облака'),
+      );
+    }
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: WorkoutFirestoreService.instance.workoutsSnapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text('Ошибка Firestore: ${snapshot.error}'),
+          );
+        }
+
+        final docs = WorkoutFirestoreService.documentsForUser(snapshot.data, uid);
+
+        if (docs.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text('Тренировок пока нет'),
+          );
+        }
+
+        const colors = [
+          Color(0xFFCDE2E2),
+          Color(0xFFE5F0F0),
+          Color(0xFF7EB8B8),
+        ];
+
+        return Column(
+          children: List.generate(docs.length, (i) {
+            final data = docs[i].data();
+            final dateStr = data['date']?.toString() ?? '';
+            final title = data['title']?.toString() ?? '';
+            final subtitle = '${data['distance']} км • ${data['kcal']} ккал';
+            final bg = colors[i % colors.length];
+            final isDark = bg == const Color(0xFF7EB8B8);
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+              decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(5)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$dateStr — $title',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.85),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    'Show more',
+                    style: TextStyle(
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
 }
 
 // Простой рисовальщик линии графика
