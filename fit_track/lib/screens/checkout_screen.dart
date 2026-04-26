@@ -1,60 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:fit_track/screens/home_screen.dart';
+import 'package:fit_track/screens/selection_screen.dart';
 import 'package:fit_track/widgets/app_bottom_nav.dart';
 import 'package:fit_track/screens/stats_screen.dart';
 import 'package:fit_track/screens/root_screen.dart';
 import 'package:fit_track/screens/workouts_list_screen.dart';
-import 'package:fit_track/services/workout_firestore_service.dart';
 
 class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F7FC),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Заголовок и кнопка See all
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   const Text(
-                    'Great job !',
+                    'Great job!',
                     style: TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Alumni Sans',
-                      color: Colors.black,
+                      fontSize: 34,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                  Text(
+                  TextButton(
+                    onPressed: () {},
+                    child: Text(
                     'See all',
                     style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade400,
-                      fontFamily: 'Alumni Sans',
+                        fontSize: 14,
+                        color: Colors.grey.shade500,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ],
+                ]
               ),
             ),
-
-            // Карточка с информацией и картой
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: const Color(0xFF7EB8B8), width: 1),
-                ),
+              child: Card(
                 child: Column(
                   children: [
-                    // Текстовая информация
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -64,8 +59,7 @@ class CheckoutScreen extends StatelessWidget {
                             'Утренний забег',
                             style: TextStyle(
                               fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Alumni Sans',
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                           Text(
@@ -73,23 +67,20 @@ class CheckoutScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey.shade500,
-                              fontFamily: 'Alumni Sans',
                             ),
                           ),
                           const SizedBox(height: 15),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               _buildMiniMetric('5 KM', 'Distance'),
-                              const SizedBox(width: 30),
                               _buildMiniMetric('33.11/KM', 'Pace'),
-                              const SizedBox(width: 30),
                               _buildMiniMetric('30M', 'Time'),
                             ],
                           ),
                         ],
                       ),
                     ),
-                    // Сама карта (изображение)
                     Container(
                       height: 180,
                       width: double.infinity,
@@ -108,17 +99,15 @@ class CheckoutScreen extends StatelessWidget {
                 ),
               ),
             ),
-
-            const SizedBox(height: 25),
-
-            // Список кнопок
+            const SizedBox(height: 20),
             Expanded(
-              child: Padding(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 25),
                 child: Column(
                   children: [
                     _buildActionButton(
                       'Вся статистика',
+                      cs,
                       () {
                         Navigator.push(
                           context,
@@ -127,7 +116,8 @@ class CheckoutScreen extends StatelessWidget {
                       },
                     ),
                     _buildActionButton(
-                      'Мои тренировки (Firestore)',
+                      'Мои тренировки',
+                      cs,
                       () {
                         Navigator.push(
                           context,
@@ -136,26 +126,28 @@ class CheckoutScreen extends StatelessWidget {
                       },
                     ),
                     _buildActionButton(
-                      'Добавить 3 демо-тренировки',
-                      () async {
-                        try {
-                          await WorkoutFirestoreService.instance.addSampleWorkouts();
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('3 тренировки записаны в Firestore')),
-                          );
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Ошибка: $e')),
-                          );
-                        }
+                      'Маршруты',
+                      cs,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SelectionPage()),
+                        );
                       },
                     ),
-                    _buildActionButton('Похожие маршруты', () {}),
-                    _buildActionButton('Здоровье', () {}),
+                    _buildActionButton(
+                      'На главную',
+                      cs,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const FitnessHomeScreen()),
+                        );
+                      },
+                    ),
                     _buildActionButton(
                       'Повторить',
+                      cs,
                       () {
                         Navigator.push(
                           context,
@@ -168,7 +160,6 @@ class CheckoutScreen extends StatelessWidget {
               ),
             ),
 
-            // Нижнее меню — общее для всего приложения
             const AppBottomNav(activePage: AppPage.workouts),
           ],
         ),
@@ -176,25 +167,23 @@ class CheckoutScreen extends StatelessWidget {
     );
   }
 
-  // Виджет для маленьких метрик (км, темп, время)
   Widget _buildMiniMetric(String value, String label) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           value,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Alumni Sans'),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
         Text(
           label,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade500, fontFamily: 'Alumni Sans'),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
         ),
       ],
     );
   }
 
-  // Виджет широкой кнопки
-  Widget _buildActionButton(String title, VoidCallback onPressed) {
+  Widget _buildActionButton(String title, ColorScheme cs, VoidCallback onPressed) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: SizedBox(
@@ -203,22 +192,19 @@ class CheckoutScreen extends StatelessWidget {
         child: ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF7EB8B8),
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            backgroundColor: cs.primary,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
           child: Text(
             title,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 24,
-              fontFamily: 'Alumni Sans',
-              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
       ),
     );
   }
-
 }

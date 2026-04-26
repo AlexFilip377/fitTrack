@@ -12,36 +12,36 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
-  String activeTab = 'Неделя'; // Текущая выбранная вкладка
+  String activeTab = 'Weekly';
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F7FC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFCDE2E2),
-        elevation: 0,
-        centerTitle: true,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.bar_chart, color: Color(0xFF8D8985)),
-            const SizedBox(width: 8),
-            const Text('Статистика', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ],
+        title: const Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Statistics'),
         ),
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Вкладки: Неделя, Месяц, Год
             Container(
-              color: const Color(0xFFCDE2E2),
+              margin: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
               child: Row(
                 children: [
-                  _buildTab('Неделя'),
-                  _buildTab('Месяц'),
-                  _buildTab('Год'),
+                  _buildTab('Weekly', cs),
+                  _buildTab('Monthly', cs),
+                  _buildTab('All-time', cs),
                 ],
               ),
             ),
@@ -49,37 +49,49 @@ class _StatsScreenState extends State<StatsScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  // Область с графиком (заглушка под дизайн)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: SizedBox(
-                          height: 150,
-                          child: CustomPaint(painter: ChartPainter()), // Рисуем линию графика
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      _buildQualityCard(),
-                    ],
+                  _buildRunningVolumeCard(cs),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Weekly Goals',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
                   ),
-                  const SizedBox(height: 20),
-                  // Индикаторы (KCAL, KM, AVG SPEED)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildStatCircle('367', 'KCAL'),
-                      _buildStatCircle('5.1', 'KM'),
-                      _buildStatCircle('9', 'AVG SPEED'),
-                    ],
+                  const SizedBox(height: 10),
+                  _buildGoalCard(
+                    icon: Icons.gps_fixed,
+                    iconBg: const Color(0xFFE0ECFF),
+                    iconColor: const Color(0xFF3B82F6),
+                    title: 'Distance',
+                    subtitle: '45.6 / 50 km',
+                    percentLabel: '91%',
+                    progress: 0.91,
+                    progressColor: const Color(0xFF2563EB),
                   ),
-                  const SizedBox(height: 20),
+                  _buildGoalCard(
+                    icon: Icons.access_time,
+                    iconBg: const Color(0xFFDCFCE7),
+                    iconColor: const Color(0xFF16A34A),
+                    title: 'Time',
+                    subtitle: '4h 15m / 5h',
+                    percentLabel: '85%',
+                    progress: 0.85,
+                    progressColor: const Color(0xFF16A34A),
+                  ),
+                  _buildGoalCard(
+                    icon: Icons.local_fire_department_outlined,
+                    iconBg: const Color(0xFFFFEDD5),
+                    iconColor: const Color(0xFFEA580C),
+                    title: 'Calories',
+                    subtitle: '3,240 / 4,000',
+                    percentLabel: '81%',
+                    progress: 0.81,
+                    progressColor: const Color(0xFFEA580C),
+                  ),
+                  const SizedBox(height: 10),
                   const Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'История (Firestore)',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      'Recent Sessions',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -95,26 +107,24 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildTab(String title) {
+  Widget _buildTab(String title, ColorScheme cs) {
     bool isActive = activeTab == title;
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => activeTab = title),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isActive ? const Color(0xFF7EB8B8) : Colors.transparent,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
+            color: isActive ? const Color(0xFFF1F5F9) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             title,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isActive ? Colors.white : const Color(0xFF8D8985),
-              fontWeight: FontWeight.bold,
+              color: isActive ? const Color(0xFF111827) : const Color(0xFF64748B),
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
@@ -122,37 +132,118 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildStatCircle(String value, String label) {
-    return Column(
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-        const SizedBox(height: 5),
-        Container(
-          width: 70,
-          height: 70,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF7EB8B8), width: 4),
+  Widget _buildRunningVolumeCard(ColorScheme cs) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Running Volume',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+              ),
+              Icon(Icons.trending_up_rounded, color: const Color(0xFF22C55E), size: 18),
+            ],
           ),
-          child: Center(
-            child: Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          Container(
+            height: 160,
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFCFDFE),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: CustomPaint(painter: ChartPainter(cs.primary)),
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Mon', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                Text('Tue', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                Text('Wed', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                Text('Thu', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                Text('Fri', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                Text('Sat', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                Text('Sun', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+              ],
+            ),
+          ),
+          const Divider(height: 20, color: Color(0xFFE2E8F0)),
+          const Text('Total Distance', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+          const SizedBox(height: 2),
+          const Text('45.6 km', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800)),
+        ],
+      ),
     );
   }
 
-  Widget _buildQualityCard() {
+  Widget _buildGoalCard({
+    required IconData icon,
+    required Color iconBg,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String percentLabel,
+    required double progress,
+    required Color progressColor,
+  }) {
     return Container(
-      width: 120,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(color: const Color(0xFF7EB8B8), borderRadius: BorderRadius.circular(15)),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
         children: [
-          Text('Качество сна:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-          SizedBox(height: 20),
-          Align(alignment: Alignment.bottomRight, child: Icon(Icons.arrow_forward, color: Colors.white, size: 16)),
+          Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+                child: Icon(icon, color: iconColor, size: 16),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                    Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  ],
+                ),
+              ),
+              Text(
+                percentLabel,
+                style: TextStyle(color: progressColor, fontWeight: FontWeight.w800),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              minHeight: 5,
+              value: progress,
+              color: progressColor,
+              backgroundColor: progressColor.withValues(alpha: 0.2),
+            ),
+          ),
         ],
       ),
     );
@@ -268,14 +359,34 @@ class _FirestoreWorkoutsHistory extends StatelessWidget {
 
 // Простой рисовальщик линии графика
 class ChartPainter extends CustomPainter {
+  final Color color;
+
+  ChartPainter(this.color);
+
   @override
   void paint(Canvas canvas, Size size) {
-    var paint = Paint()..color = Colors.black..style = PaintingStyle.stroke..strokeWidth = 2;
+    final gridPaint = Paint()
+      ..color = const Color(0xFFE5E7EB)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (var i = 1; i < 4; i++) {
+      final y = size.height * (i / 4);
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+
+    var paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5;
     var path = Path();
-    path.moveTo(0, size.height);
-    path.lineTo(size.width * 0.2, size.height * 0.7);
-    path.lineTo(size.width * 0.4, size.height * 0.9);
-    path.lineTo(size.width * 0.7, size.height * 0.4);
+    path.moveTo(0, size.height * 0.85);
+    path.lineTo(size.width * 0.16, size.height * 0.75);
+    path.lineTo(size.width * 0.34, size.height * 0.78);
+    path.lineTo(size.width * 0.50, size.height * 0.62);
+    path.lineTo(size.width * 0.68, size.height * 0.55);
+    path.lineTo(size.width * 0.82, size.height * 0.4);
+    path.lineTo(size.width, size.height * 0.34);
     canvas.drawPath(path, paint);
   }
   @override

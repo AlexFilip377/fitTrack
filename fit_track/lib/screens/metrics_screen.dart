@@ -149,6 +149,7 @@ class _MetricsScreenState extends State<MetricsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final elapsed = _elapsed;
     final dist = _distanceKm;
     final kcal = _kcal;
@@ -159,7 +160,7 @@ class _MetricsScreenState extends State<MetricsScreen> {
     final speedStr = '${speed.toStringAsFixed(1)} km/h';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F7FC),
       body: SafeArea(
         child: Column(
           children: [
@@ -186,7 +187,7 @@ class _MetricsScreenState extends State<MetricsScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.85),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
                           '${dist.toStringAsFixed(2)} км  ·  $kcal ккал  ·  ${_stopwatch.isRunning ? 'идёт' : (_sessionEverStarted ? 'пауза' : 'стоп')}',
@@ -202,32 +203,33 @@ class _MetricsScreenState extends State<MetricsScreen> {
             Expanded(
               flex: 6,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildMetricRow(timeStr, Icons.access_time, _timeProgress(elapsed)),
-                    _buildMetricRow(distStr, Icons.directions_run, _distanceProgress(dist)),
-                    _buildMetricRow(speedStr, Icons.directions_walk, _speedProgress(speed)),
+                    _buildMetricRow(timeStr, Icons.access_time, _timeProgress(elapsed), cs),
+                    _buildMetricRow(distStr, Icons.directions_run, _distanceProgress(dist), cs),
+                    _buildMetricRow(speedStr, Icons.directions_walk, _speedProgress(speed), cs),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         GestureDetector(
                           onTap: _onPause,
-                          child: _buildControlBtn(Icons.pause, isOutlined: true),
+                          child: _buildControlBtn(Icons.pause, cs, isOutlined: true),
                         ),
                         GestureDetector(
                           onTap: _onPlay,
                           child: _buildControlBtn(
                             Icons.play_arrow,
+                            cs,
                             size: 85,
-                            color: const Color(0xFF7EB8B8).withValues(alpha: 0.7),
+                            color: cs.primary.withValues(alpha: 0.8),
                           ),
                         ),
                         GestureDetector(
                           onTap: () => _onStop(context),
-                          child: _buildControlBtn(Icons.stop, isSquare: true, color: const Color(0xFF7EB8B8)),
+                          child: _buildControlBtn(Icons.stop, cs, isSquare: true, color: cs.primary),
                         ),
                       ],
                     ),
@@ -243,16 +245,21 @@ class _MetricsScreenState extends State<MetricsScreen> {
     );
   }
 
-  Widget _buildMetricRow(String value, IconData icon, double progress) {
-    return Column(
+  Widget _buildMetricRow(String value, IconData icon, double progress, ColorScheme cs) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           value,
           style: const TextStyle(
-            fontSize: 48,
-            fontWeight: FontWeight.w900,
-            fontFamily: 'Alumni Sans',
+            fontSize: 40,
+            fontWeight: FontWeight.w800,
             color: Colors.black,
           ),
         ),
@@ -264,7 +271,7 @@ class _MetricsScreenState extends State<MetricsScreen> {
               height: 4,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: const Color(0xFFC1DDDD),
+                color: const Color(0xFFE2E8F0),
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -279,7 +286,7 @@ class _MetricsScreenState extends State<MetricsScreen> {
                       height: 4,
                       width: w,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF7EB8B8),
+                        color: cs.primary,
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -287,8 +294,8 @@ class _MetricsScreenState extends State<MetricsScreen> {
                       left: knobLeft,
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF7EB8B8),
+                        decoration: BoxDecoration(
+                          color: cs.primary,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(icon, size: 16, color: Colors.white),
@@ -301,23 +308,30 @@ class _MetricsScreenState extends State<MetricsScreen> {
           ],
         ),
       ],
-    );
+    ));
   }
 
-  Widget _buildControlBtn(IconData icon, {double size = 65, Color? color, bool isOutlined = false, bool isSquare = false}) {
+  Widget _buildControlBtn(
+    IconData icon,
+    ColorScheme cs, {
+    double size = 65,
+    Color? color,
+    bool isOutlined = false,
+    bool isSquare = false,
+  }) {
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: isOutlined ? Colors.transparent : (color ?? const Color(0xFF7EB8B8)),
+        color: isOutlined ? Colors.transparent : (color ?? cs.primary),
         shape: isSquare ? BoxShape.rectangle : BoxShape.circle,
         borderRadius: isSquare ? BorderRadius.circular(12) : null,
-        border: isOutlined ? Border.all(color: const Color(0xFF7EB8B8), width: 4) : null,
+        border: isOutlined ? Border.all(color: cs.primary, width: 4) : null,
       ),
       child: Icon(
         icon,
         size: size * 0.55,
-        color: isOutlined ? const Color(0xFF7EB8B8) : Colors.white,
+        color: isOutlined ? cs.primary : Colors.white,
       ),
     );
   }

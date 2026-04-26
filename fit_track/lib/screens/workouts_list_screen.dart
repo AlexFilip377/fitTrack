@@ -10,12 +10,11 @@ class WorkoutsListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F7FC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF7EB8B8),
-        foregroundColor: Colors.white,
         title: const Text('Мои тренировки'),
       ),
       body: uid == null
@@ -47,18 +46,29 @@ class WorkoutsListScreen extends StatelessWidget {
                 }
 
                 return ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                   children: docs.map((document) {
                     final data = document.data();
                     return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      margin: const EdgeInsets.symmetric(vertical: 6),
                       child: ListTile(
-                        leading: const Icon(Icons.directions_run, color: Color(0xFF7EB8B8)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: cs.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(Icons.directions_run, color: cs.primary),
+                        ),
                         title: Text(data['title']?.toString() ?? 'Без названия'),
                         subtitle: Text(
                           '${data['distance']} км • ${data['kcal']} ккал • ${data['type'] ?? ''}',
                         ),
-                        trailing: Text(data['date']?.toString() ?? ''),
+                        trailing: Text(
+                          data['date']?.toString() ?? '',
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                        ),
                       ),
                     );
                   }).toList(),

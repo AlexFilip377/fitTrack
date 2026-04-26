@@ -16,87 +16,121 @@ class _RootScreenState extends State<RootScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F7FC),
       body: SafeArea(
         child: Column(
           children: [
-            // 1. ЗАГОЛОВОК
             Container(
               width: double.infinity,
-              color: const Color(0xFFC1DDDD),
-              padding: const EdgeInsets.symmetric(vertical: 20),
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(22),
+              ),
               child: const Text(
                 'Выберите маршрут',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
               ),
             ),
-
-            // 2. ВКЛАДКИ
-            Row(
-              children: [
-                // Вкладка "Базовые" остается как есть — она просто переключает контент внутри страницы
-                _buildTab(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  _buildTab(
                   'Базовые', 
-                  isActive: isBaseTabActive, 
+                  colorScheme: cs,
+                  isActive: isBaseTabActive,
                   onTap: () {
                     setState(() => isBaseTabActive = true);
                   },
                 ),
-                // Вкладка "Мои маршруты" теперь открывает новую страницу SelectionPage
-                _buildTab(
+                  _buildTab(
                   'Мои маршруты', 
-                  isActive: !isBaseTabActive, 
+                  colorScheme: cs,
+                  isActive: !isBaseTabActive,
                   onTap: () {
-                    // 1. Сначала меняем визуальное состояние (по желанию)
                     setState(() => isBaseTabActive = false);
-                    
-                    // 2. Переходим на страницу выбора (selection)
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const SelectionPage()),
                     );
                   },
                 ),
-              ],
+                ],
+              ),
             ),
-
-            // 3. МАРШРУТЫ
-            _buildRouteItem('Маршрут 1', index: 0),
-            _buildRouteItem('Маршрут 2', index: 1),
-            _buildRouteItem('Маршрут 3', index: 2),
-
-            // 4. КАРТА И КНОПКА GO!
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  _buildRouteItem('Маршрут 1', cs, index: 0),
+                  _buildRouteItem('Маршрут 2', cs, index: 1),
+                  _buildRouteItem('Маршрут 3', cs, index: 2),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
             Expanded(
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
                     width: double.infinity,
-                    color: Colors.grey[200], // Заглушка вместо карты
-                    child: const Center(child: Text("Карта")),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      gradient: LinearGradient(
+                        colors: [cs.primary.withValues(alpha: 0.1), cs.secondary.withValues(alpha: 0.18)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.map_outlined, size: 44, color: Color(0xFF334155)),
+                          SizedBox(height: 10),
+                          Text('Карта маршрута', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
                   ),
-                  
                   Positioned(
                     bottom: 25,
                     child: GestureDetector(
                       onTap: () {
-                        // ПЕРЕХОД НА ЭКРАН МЕТРИК
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const MetricsScreen()),
                         );
                       },
                       child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF7EB8B8),
+                        width: 94,
+                        height: 94,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [cs.primary, cs.secondary],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: cs.primary.withValues(alpha: 0.4),
+                              blurRadius: 18,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
                         child: const Center(
-                          child: Text('GO!', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                          child: Text('GO!', style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w900)),
                         ),
                       ),
                     ),
@@ -104,8 +138,6 @@ class _RootScreenState extends State<RootScreen> {
                 ],
               ),
             ),
-
-            // 5. НИЖНЕЕ МЕНЮ — общее для всего приложения
             const AppBottomNav(activePage: AppPage.start),
           ],
         ),
@@ -113,29 +145,64 @@ class _RootScreenState extends State<RootScreen> {
     );
   }
 
-  // Вспомогательные методы (Tabs и RouteItems) без изменений...
-  Widget _buildTab(String label, {required bool isActive, required VoidCallback onTap}) {
+  Widget _buildTab(
+    String label, {
+    required ColorScheme colorScheme,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
-          height: 60,
-          color: isActive ? const Color(0xFF7EB8B8) : const Color(0xFFC1DDDD).withValues(alpha: 0.5),
-          child: Center(child: Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          height: 52,
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            color: isActive ? colorScheme.primary : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: isActive ? Colors.white : const Color(0xFF1E293B),
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildRouteItem(String title, {required int index}) {
-    bool isSelected = selectedRouteIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => selectedRouteIndex = index),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(15),
-        color: isSelected ? const Color(0xFF7EB8B8) : const Color(0xFFC1DDDD),
-        child: Text(title, style: TextStyle(fontSize: 20, color: isSelected ? Colors.black : Colors.black45)),
+  Widget _buildRouteItem(String title, ColorScheme cs, {required int index}) {
+    final isSelected = selectedRouteIndex == index;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: GestureDetector(
+        onTap: () => setState(() => selectedRouteIndex = index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: isSelected ? cs.primary.withValues(alpha: 0.14) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? cs.primary.withValues(alpha: 0.35) : Colors.transparent,
+            ),
+          ),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 17,
+              color: isSelected ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ),
       ),
     );
   }

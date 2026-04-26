@@ -62,8 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F7FC),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -73,21 +75,34 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Вход',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 8),
-                  const SizedBox(height: 4),
-                  const SizedBox(height: 24),
-                  Card(
-                    elevation: 0,
-                    color: const Color(0xFFF6FAFA),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25)),
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [cs.primary, cs.secondaryContainer],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
                     ),
+                    child: const Column(
+                      children: [
+                        Icon(Icons.directions_run, size: 36, color: Colors.white),
+                        SizedBox(height: 8),
+                        Text(
+                          'Вход в FitTrack',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Form(
@@ -138,9 +153,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: double.infinity,
                               child: FilledButton(
                                 onPressed: _loading ? null : _submit,
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: const Color(0xFF7EB8B8),
-                                ),
                                 child: _loading
                                     ? const SizedBox(
                                         width: 22,

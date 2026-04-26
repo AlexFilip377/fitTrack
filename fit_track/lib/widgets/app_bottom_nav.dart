@@ -12,11 +12,22 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Container(
-      height: 70,
+      height: 84,
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -24,24 +35,28 @@ class AppBottomNav extends StatelessWidget {
           _NavItem(
             icon: Icons.home_outlined,
             label: 'Home',
+            activeColor: cs.primary,
             isActive: activePage == AppPage.home,
             onTap: () => _handleTap(context, AppPage.home),
           ),
           _NavItem(
             icon: Icons.check_box_outlined,
             label: 'Workouts',
+            activeColor: cs.primary,
             isActive: activePage == AppPage.workouts,
             onTap: () => _handleTap(context, AppPage.workouts),
           ),
           _NavItem(
             icon: Icons.radio_button_checked,
             label: 'Start',
+            activeColor: cs.primary,
             isActive: activePage == AppPage.start,
             onTap: () => _handleTap(context, AppPage.start),
           ),
           _NavItem(
             icon: Icons.stacked_line_chart,
             label: 'Overview',
+            activeColor: cs.primary,
             isActive: activePage == AppPage.overview,
             onTap: () => _handleTap(context, AppPage.overview),
           ),
@@ -79,33 +94,49 @@ class _NavItem extends StatelessWidget {
   final String label;
   final bool isActive;
   final VoidCallback onTap;
+  final Color activeColor;
 
   const _NavItem({
     required this.icon,
     required this.label,
     required this.isActive,
     required this.onTap,
+    required this.activeColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? const Color(0xFF7EB8B8) : Colors.grey;
+    final color = isActive ? activeColor : const Color(0xFF94A3B8);
 
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: color,
+      child: SizedBox(
+        width: 72,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              width: 46,
+              height: 34,
+              decoration: BoxDecoration(
+                color: isActive ? activeColor.withValues(alpha: 0.12) : Colors.transparent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 21),
             ),
-          ),
-        ],
+            const SizedBox(height: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: color,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
